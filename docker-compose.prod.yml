@@ -1,0 +1,78 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB__DATABASE:-text_to_sql}
+      POSTGRES_USER: ${DB__USER:-postgres}
+      POSTGRES_PASSWORD: ${DB__PASSWORD:?Set DB__PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB__USER:-postgres}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB__HOST: postgres
+      DB__PORT: 5432
+      DB__DATABASE: ${DB__DATABASE:-text_to_sql}
+      DB__USER: ${DB__USER:-postgres}
+      DB__PASSWORD: ${DB__PASSWORD:?Set DB__PASSWORD}
+      DB__SCHEMA_NAME: ${DB__SCHEMA_NAME:-public}
+      DB__POOL_MIN_SIZE: ${DB__POOL_MIN_SIZE:-2}
+      DB__POOL_MAX_SIZE: ${DB__POOL_MAX_SIZE:-10}
+      FERNET_KEY: ${FERNET_KEY:?Set FERNET_KEY}
+      ENVIRONMENT: production
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:?Set ANTHROPIC_API_KEY}
+      LANGSMITH_TRACING: ${LANGSMITH_TRACING:-false}
+      LANGSMITH_API_KEY: ${LANGSMITH_API_KEY:-}
+      LANGSMITH_PROJECT: ${LANGSMITH_PROJECT:-}
+    ports:
+      - "127.0.0.1:8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000/v1/api}
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+
+  init-db:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB__HOST: postgres
+      DB__PORT: 5432
+      DB__DATABASE: ${DB__DATABASE:-text_to_sql}
+      DB__USER: ${DB__USER:-postgres}
+      DB__PASSWORD: ${DB__PASSWORD:?Set DB__PASSWORD}
+      DB__SCHEMA_NAME: ${DB__SCHEMA_NAME:-public}
+      FERNET_KEY: ${FERNET_KEY:-unused}
+    command: ["python", "scripts/initialize_db.py"]
+    profiles:
+      - init
+
+volumes:
+  pgdata:
