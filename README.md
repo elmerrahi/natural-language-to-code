@@ -1,4 +1,4 @@
-# text-to-sql-agent
+# Natural Language to Code
 
 An open-source AI agent that converts natural language into SQL. Ask questions about your data in plain English -- the agent generates, executes, and explains SQL queries using Claude's extended thinking capabilities.
 
@@ -135,8 +135,8 @@ This project is a practical reference for building production-grade AI agents. B
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/shreyabaid007/text-to-sql-agent.git
-cd text-to-sql-agent
+git clone https://github.com/elmerrahi/natural-language-to-code.git
+cd natural-language-to-code
 ```
 
 ### 2. Configure environment
