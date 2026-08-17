@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SQL Agent",
-  description: "Ask questions about your data in plain English",
+  title: "Natural Language to Code",
+  description: "A high-tech AI workspace for querying data in natural language",
 };
 
 export default function RootLayout({
@@ -27,7 +27,7 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
     >
-      <body className="h-full bg-background text-foreground">{children}</body>
+      <body className="h-full overflow-hidden bg-background text-foreground">{children}</body>
     </html>
   );
 }

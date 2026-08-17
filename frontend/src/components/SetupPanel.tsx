@@ -34,38 +34,41 @@ export default function SetupPanel({
   };
 
   const tabCls = (t: Tab) =>
-    `flex-1 py-2 text-xs font-medium rounded-md transition-colors ${
+    `flex-1 rounded-lg px-2 py-2 text-xs font-medium transition-all ${
       tab === t
-        ? "bg-background text-foreground shadow-sm"
-        : "text-muted hover:text-foreground"
+        ? "border border-cyan-300/20 bg-gradient-to-r from-cyan-400/12 to-violet-500/12 text-cyan-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+        : "border border-transparent text-muted hover:bg-white/[0.03] hover:text-foreground"
     }`;
 
   return (
-    <div className="p-4 space-y-5">
+    <div className="space-y-4 p-4">
       {/* API Key */}
-      <section>
-        <label className="block text-xs text-muted font-medium uppercase tracking-wider mb-2">
-          API Key
-        </label>
+      <section className="tech-card p-4">
+        <div className="section-label mb-3">
+          <span className="section-index">01</span>
+          Intelligence layer
+        </div>
         <ApiKeyInput apiKey={apiKey} onChange={onApiKeyChange} />
       </section>
 
       {/* Data Source */}
       {apiKey && (
-        <section>
-          <label className="block text-xs text-muted font-medium uppercase tracking-wider mb-2">
-            Data Source
-          </label>
+        <section className="tech-card p-4">
+          <div className="section-label mb-3">
+            <span className="section-index">02</span>
+            Data uplink
+          </div>
 
           {dataSource ? (
             <div>
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm text-zinc-300">
-                  {dataSource.type === "csv" ? "CSV uploaded" : "Database connected"}
+              <div className="mb-3 flex items-center justify-between rounded-lg border border-emerald-400/15 bg-emerald-400/[0.04] px-3 py-2.5">
+                <span className="flex items-center gap-2 text-xs text-emerald-200">
+                  <span className="status-pulse" />
+                  {dataSource.type === "csv" ? "CSV synchronized" : "Database online"}
                 </span>
                 <button
                   onClick={handleReset}
-                  className="text-xs text-muted hover:text-red-400 transition-colors"
+                  className="font-mono text-[10px] uppercase tracking-wider text-muted transition-colors hover:text-red-300"
                 >
                   Disconnect
                 </button>
@@ -74,7 +77,7 @@ export default function SetupPanel({
             </div>
           ) : (
             <>
-              <div className="flex gap-1 p-1 bg-background rounded-lg mb-3">
+              <div className="mb-3 flex gap-1 rounded-xl border border-white/5 bg-black/20 p-1">
                 <button className={tabCls("csv")} onClick={() => setTab("csv")}>
                   Upload CSV
                 </button>
@@ -91,6 +94,11 @@ export default function SetupPanel({
             </>
           )}
         </section>
+      )}
+      {!apiKey && (
+        <div className="rounded-xl border border-dashed border-violet-400/15 bg-violet-400/[0.025] px-4 py-3 text-xs leading-relaxed text-muted">
+          Add your API key to unlock the data uplink and neural query console.
+        </div>
       )}
     </div>
   );

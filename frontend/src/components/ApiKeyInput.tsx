@@ -13,19 +13,24 @@ export default function ApiKeyInput({ apiKey, onChange }: Props) {
 
   if (!editing && apiKey) {
     return (
-      <div className="flex items-center gap-2">
-        <div className="flex-1 min-w-0 px-3 py-2 rounded-lg bg-background border border-border text-sm font-mono truncate text-muted">
-          {apiKey.slice(0, 12)}{"•".repeat(8)}
+      <div>
+        <div className="mb-2 flex items-center gap-2 text-[11px] text-emerald-300">
+          <span className="status-pulse" /> Secure key active
         </div>
-        <button
-          onClick={() => {
-            setDraft(apiKey);
-            setEditing(true);
-          }}
-          className="shrink-0 text-xs text-muted hover:text-foreground transition-colors"
-        >
-          Edit
-        </button>
+        <div className="flex items-center gap-2">
+          <div className="tech-input min-w-0 flex-1 truncate px-3 py-2.5 font-mono text-xs text-slate-400">
+            {apiKey.slice(0, 12)}{"•".repeat(8)}
+          </div>
+          <button
+            onClick={() => {
+              setDraft(apiKey);
+              setEditing(true);
+            }}
+            className="shrink-0 rounded-lg border border-white/10 px-3 py-2.5 font-mono text-[10px] uppercase tracking-wider text-muted transition-colors hover:border-cyan-300/30 hover:text-cyan-200"
+          >
+            Edit
+          </button>
+        </div>
       </div>
     );
   }
@@ -39,21 +44,23 @@ export default function ApiKeyInput({ apiKey, onChange }: Props) {
           setEditing(false);
         }
       }}
-      className="flex gap-2"
+      className="space-y-2"
     >
-      <input
-        type="password"
-        value={draft}
-        onChange={(e) => setDraft(e.target.value)}
-        placeholder="sk-..."
-        className="flex-1 min-w-0 px-3 py-2 rounded-lg bg-background border border-border text-sm font-mono placeholder:text-zinc-600 focus:outline-none focus:border-accent"
-      />
-      <button
-        type="submit"
-        className="shrink-0 px-3 py-2 rounded-lg bg-accent text-white text-sm font-medium hover:bg-accent/90 transition-colors"
-      >
-        Save
-      </button>
+      <p className="text-[11px] leading-relaxed text-muted">
+        Connect your Anthropic intelligence key. It stays in this browser.
+      </p>
+      <div className="flex gap-2">
+        <input
+          type="password"
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          placeholder="sk-ant-..."
+          className="tech-input min-w-0 flex-1 px-3 py-2.5 font-mono text-xs"
+        />
+        <button type="submit" className="neon-button shrink-0 rounded-lg px-3.5 py-2 text-xs font-semibold">
+          Save
+        </button>
+      </div>
     </form>
   );
 }

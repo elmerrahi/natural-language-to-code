@@ -168,60 +168,80 @@ export default function ChatWindow({ apiKey, dataSource }: Props) {
   const isReady = !!apiKey && !!dataSource;
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="relative flex h-full flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card">
-        <div className="flex items-center gap-2">
-          <div
-            className={`w-2 h-2 rounded-full ${isReady ? "bg-emerald-400" : "bg-zinc-600"}`}
-          />
-          <span className="text-sm text-muted">
-            {!apiKey
-              ? "Enter API key to start"
-              : !dataSource
-              ? "Upload CSV or connect a database"
-              : "Ready"}
-          </span>
+      <div className="glass-panel z-10 flex items-center justify-between border-x-0 border-t-0 px-5 py-3.5 md:px-7">
+        <div className="flex items-center gap-3">
+          <div className="hidden h-8 w-px bg-gradient-to-b from-transparent via-cyan-300/40 to-transparent sm:block" />
+          <div>
+            <p className="font-mono text-[9px] uppercase tracking-[0.24em] text-cyan-300/55">Neural query console</p>
+            <div className="mt-0.5 flex items-center gap-2">
+              <span className={`h-1.5 w-1.5 rounded-full ${isReady ? "status-pulse" : "bg-slate-600"}`} />
+              <span className="text-xs text-slate-300">
+                {!apiKey
+                  ? "Awaiting intelligence key"
+                  : !dataSource
+                  ? "Awaiting data uplink"
+                  : "Systems ready"}
+              </span>
+            </div>
+          </div>
         </div>
         {messages.length > 0 && (
           <button
             onClick={handleNewChat}
-            className="text-xs text-muted hover:text-foreground transition-colors"
+            className="rounded-lg border border-white/[0.07] bg-white/[0.025] px-3 py-2 font-mono text-[10px] uppercase tracking-wider text-muted transition-colors hover:border-cyan-300/25 hover:text-cyan-200"
           >
-            New chat
+            New sequence
           </button>
         )}
       </div>
 
       {/* Messages */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
-        {messages.length === 0 && isReady && (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <svg className="w-12 h-12 text-zinc-700 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-            </svg>
-            <p className="text-sm text-muted mb-1">Ask a question about your data</p>
-            <p className="text-xs text-zinc-600">
-              Try: &quot;What are the top 10 rows?&quot; or &quot;Show me a summary&quot;
+      <div ref={scrollRef} className="flex-1 space-y-5 overflow-y-auto px-4 py-5 md:px-8 md:py-7">
+        {messages.length === 0 && (
+          <div className="mx-auto flex h-full max-w-2xl flex-col items-center justify-center text-center">
+            <div className="hero-orbit mb-7">
+              <svg className="h-10 w-10 text-cyan-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.25} d="M4 7.5C4 5.567 7.582 4 12 4s8 1.567 8 3.5S16.418 11 12 11 4 9.433 4 7.5Zm0 0v4C4 13.433 7.582 15 12 15s8-1.567 8-3.5v-4m-16 4v4C4 17.433 7.582 19 12 19s8-1.567 8-3.5v-4" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.25} d="m9 7.5 2 1.5 4-3" />
+              </svg>
+            </div>
+            <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.28em] text-violet-300/70">Language becomes logic</p>
+            <h2 className="gradient-text text-3xl font-semibold tracking-[-0.035em] md:text-4xl">Query at the speed of thought.</h2>
+            <p className="mt-3 max-w-lg text-sm leading-6 text-muted">
+              {isReady
+                ? "Your data is synchronized. Ask naturally, inspect the generated SQL, and explore the results."
+                : "Complete the two secure setup steps to connect your intelligence layer and data source."}
             </p>
+            <div className="mt-7 flex flex-wrap justify-center gap-2">
+              {(isReady
+                ? ["Top 10 records", "Summarize the dataset", "Find unusual patterns"]
+                : ["01 · Add API key", "02 · Connect data", "03 · Start querying"]
+              ).map((hint) => (
+                <span key={hint} className="rounded-full border border-cyan-300/10 bg-cyan-300/[0.035] px-3 py-1.5 font-mono text-[10px] text-slate-400">
+                  {hint}
+                </span>
+              ))}
+            </div>
           </div>
         )}
         {messages.map((msg) => (
           <MessageBubble key={msg.id} message={msg} />
         ))}
         {streaming && (
-          <div className="flex items-center gap-2 text-xs text-muted">
+          <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-cyan-300/70">
             <span className="inline-flex gap-1">
               <span className="w-1.5 h-1.5 bg-accent rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
               <span className="w-1.5 h-1.5 bg-accent rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
               <span className="w-1.5 h-1.5 bg-accent rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-            </span>
+            </span> Processing stream
           </div>
         )}
       </div>
 
       {error && (
-        <div className="mx-4 mb-2 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-sm text-red-400">
+        <div className="mx-4 mb-2 rounded-lg border border-red-400/20 bg-red-500/10 px-3 py-2 text-sm text-red-300">
           {error}
         </div>
       )}

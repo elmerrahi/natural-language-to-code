@@ -67,7 +67,7 @@ export default function ConnectionForm({ apiKey, onConnected }: Props) {
   };
 
   const inputCls =
-    "w-full px-3 py-2 rounded-lg bg-background border border-border text-sm placeholder:text-zinc-600 focus:outline-none focus:border-accent";
+    "tech-input px-3 py-2 text-xs";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
@@ -131,9 +131,9 @@ export default function ConnectionForm({ apiKey, onConnected }: Props) {
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-2 rounded-lg bg-accent text-white text-sm font-medium hover:bg-accent/90 disabled:opacity-50 transition-colors"
+        className="neon-button w-full rounded-lg py-2.5 text-xs font-semibold"
       >
-        {loading ? "Connecting..." : "Connect"}
+        {loading ? "Establishing uplink..." : "Initialize connection"}
       </button>
     </form>
   );
