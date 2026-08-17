@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { DataSource, ChatMode } from "@/lib/types";
+import { DataSource } from "@/lib/types";
 import SetupPanel from "@/components/SetupPanel";
 import ChatWindow from "@/components/ChatWindow";
 

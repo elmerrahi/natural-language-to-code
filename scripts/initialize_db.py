@@ -1,4 +1,5 @@
 import asyncio
+import sys
 
 from langgraph.checkpoint.postgres.aio import (
     AsyncPostgresSaver,
@@ -93,6 +94,10 @@ async def main():
 
 
 if __name__ == "__main__":
+    if sys.platform == "win32":
+        asyncio.set_event_loop_policy(
+            asyncio.WindowsSelectorEventLoopPolicy()
+        )
     logger.info(
         "Running database initialization..."
     )
