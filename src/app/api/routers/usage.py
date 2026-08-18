@@ -17,9 +17,7 @@ async def _get_db_pool(
 
 @router.get("/usage")
 async def get_usage(
-    api_key_id: Annotated[
-        str, Depends(get_api_key_id)
-    ],
+    api_key_id: Annotated[str, Depends(get_api_key_id)],
     db_pool: Annotated[
         psycopg_pool.AsyncConnectionPool,
         Depends(_get_db_pool),
@@ -61,9 +59,7 @@ async def get_usage(
 
 @router.get("/usage/summary")
 async def get_usage_summary(
-    api_key_id: Annotated[
-        str, Depends(get_api_key_id)
-    ],
+    api_key_id: Annotated[str, Depends(get_api_key_id)],
     db_pool: Annotated[
         psycopg_pool.AsyncConnectionPool,
         Depends(_get_db_pool),

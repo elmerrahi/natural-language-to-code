@@ -31,9 +31,7 @@ async def create_api_key(
     ],
 ) -> dict[str, Any]:
     raw_key = f"sk-{secrets.token_urlsafe(32)}"
-    key_hash = hashlib.sha256(
-        raw_key.encode()
-    ).hexdigest()
+    key_hash = hashlib.sha256(raw_key.encode()).hexdigest()
     key_prefix = raw_key[:8]
 
     async with db_pool.connection() as conn:
@@ -63,9 +61,7 @@ async def create_api_key(
 
 @router.get("/keys")
 async def list_api_keys(
-    api_key_id: Annotated[
-        str, Depends(get_api_key_id)
-    ],
+    api_key_id: Annotated[str, Depends(get_api_key_id)],
     db_pool: Annotated[
         psycopg_pool.AsyncConnectionPool,
         Depends(_get_db_pool),
@@ -96,9 +92,7 @@ async def list_api_keys(
 @router.delete("/keys/{key_id}")
 async def revoke_api_key(
     key_id: str,
-    api_key_id: Annotated[
-        str, Depends(get_api_key_id)
-    ],
+    api_key_id: Annotated[str, Depends(get_api_key_id)],
     db_pool: Annotated[
         psycopg_pool.AsyncConnectionPool,
         Depends(_get_db_pool),
@@ -107,9 +101,7 @@ async def revoke_api_key(
     async with db_pool.connection() as conn:
         async with conn.transaction():
             await conn.execute(
-                "UPDATE api_keys "
-                "SET is_active = false "
-                "WHERE id = %s",
+                "UPDATE api_keys SET is_active = false WHERE id = %s",
                 (key_id,),
             )
     return {"status": "revoked"}

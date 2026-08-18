@@ -9,7 +9,5 @@ def get_tool_handler(
 ) -> ToolHandler:
     dependencies = dependencies or {}
     handler = ToolHandler()
-    handler.register_tool(
-        QueryExecutorTool(**dependencies)
-    )
+    handler.register_tool(QueryExecutorTool(**dependencies))
     return handler

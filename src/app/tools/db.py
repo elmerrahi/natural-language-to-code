@@ -44,10 +44,7 @@ class QueryExecutorInput(BaseModel):
     query: Annotated[
         str,
         Field(
-            description=(
-                "SQL query to execute "
-                "against the database"
-            ),
+            description=("SQL query to execute against the database"),
         ),
     ]
 
@@ -58,12 +55,9 @@ class QueryExecutorTool(
 ):
     name: str = "query_executor"
     description: str = (
-        "Executes a read-only SQL query against "
-        "the connected database."
+        "Executes a read-only SQL query against the connected database."
     )
-    input_schema: type[QueryExecutorInput] = (
-        QueryExecutorInput
-    )
+    input_schema: type[QueryExecutorInput] = QueryExecutorInput
 
     conn: duckdb.DuckDBPyConnection
     connection_service: Any = None
@@ -85,50 +79,34 @@ class QueryExecutorTool(
                 }
             )
 
-        should_interrupt = (
-            state.interrupt_policy == "always"
-            or (
-                state.interrupt_policy == "final"
-                and input_data.purpose == "final"
-            )
+        should_interrupt = state.interrupt_policy == "always" or (
+            state.interrupt_policy == "final" and input_data.purpose == "final"
         )
         query_modified = False
         human_reason = None
 
         if should_interrupt:
-            human_feedback = interrupt(
-                value=input_data.query
-            )
-            human_feedback = (
-                QueryExecutorHumanFeedback.model_validate(
-                    obj=human_feedback
-                )
+            human_feedback = interrupt(value=input_data.query)
+            human_feedback = QueryExecutorHumanFeedback.model_validate(
+                obj=human_feedback
             )
             if human_feedback.query != input_data.query:
-                logger.debug(
-                    "Human modified proposed query."
-                )
+                logger.debug("Human modified proposed query.")
                 query_modified = True
                 human_reason = human_feedback.reason
                 input_data.query = human_feedback.query
 
-                if not validate_read_only(
-                    input_data.query
-                ):
+                if not validate_read_only(input_data.query):
                     return json.dumps(
                         {
                             "error": "REJECTED",
                             "message": (
-                                "Modified query must "
-                                "also be SELECT-only."
+                                "Modified query must also be SELECT-only."
                             ),
                         }
                     )
 
-        if (
-            state.connection_id
-            and self.connection_service
-        ):
+        if state.connection_id and self.connection_service:
             return await self._execute_via_connector(
                 input_data,
                 state,
@@ -149,24 +127,16 @@ class QueryExecutorTool(
         human_reason: str | None,
     ) -> str:
         try:
-            svc: ConnectionService = (
-                self.connection_service
-            )
+            svc: ConnectionService = self.connection_service
             raw = await svc.execute_query(
                 state.connection_id,  # type: ignore
                 input_data.query,
             )
             result = json.loads(raw)
             if query_modified:
-                result["executed_query"] = (
-                    input_data.query
-                )
-                result["reason"] = (
-                    human_reason or "No reason provided."
-                )
-                result["message"] = (
-                    "User modified the proposed query."
-                )
+                result["executed_query"] = input_data.query
+                result["reason"] = human_reason or "No reason provided."
+                result["message"] = "User modified the proposed query."
             return json.dumps(result, default=str)
         except Exception as exc:
             logger.exception(
@@ -191,27 +161,18 @@ class QueryExecutorTool(
             self.conn.execute(input_data.query)
 
             if self.conn.description is None:
-                rows_affected = getattr(
-                    self.conn, "rowcount", None
-                )
+                rows_affected = getattr(self.conn, "rowcount", None)
                 return json.dumps(
                     dict(
-                        message=(
-                            "Query executed successfully"
-                        ),
+                        message=("Query executed successfully"),
                         rows_affected=rows_affected,
                     ),
                     default=str,
                 )
 
-            columns = [
-                desc[0]
-                for desc in self.conn.description
-            ]
+            columns = [desc[0] for desc in self.conn.description]
             rows = self.conn.fetchall()
-            result = [
-                dict(zip(columns, r)) for r in rows
-            ]
+            result = [dict(zip(columns, r)) for r in rows]
             logger.info(
                 "Query returned {n} rows.",
                 n=len(result),
@@ -220,24 +181,16 @@ class QueryExecutorTool(
             if query_modified:
                 return json.dumps(
                     obj=dict(
-                        message=(
-                            "User modified the "
-                            "proposed query."
-                        ),
+                        message=("User modified the proposed query."),
                         executed_query=input_data.query,
-                        reason=(
-                            human_reason
-                            or "No reason provided."
-                        ),
+                        reason=(human_reason or "No reason provided."),
                         results=result,
                     ),
                     default=str,
                 )
             return json.dumps(
                 obj=dict(
-                    message=(
-                        "Query executed successfully"
-                    ),
+                    message=("Query executed successfully"),
                     results=result,
                 ),
                 default=str,

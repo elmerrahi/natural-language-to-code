@@ -16,22 +16,14 @@ class ChatbotRequest(BaseModel):
     interrupt_policy: InterruptPolicy = "never"
     tables_schema_xml: str | None = None
     connection_id: str | None = None
-    mode: Literal[
-        "generate", "explain", "optimize"
-    ] = "generate"
-    chat_model_settings: ChatModelSettings = (
-        ChatModelSettings()
-    )
+    mode: Literal["generate", "explain", "optimize"] = "generate"
+    chat_model_settings: ChatModelSettings = ChatModelSettings()
 
     @model_validator(mode="after")
     def check_schema_source(self) -> "ChatbotRequest":
-        if (
-            not self.tables_schema_xml
-            and not self.connection_id
-        ):
+        if not self.tables_schema_xml and not self.connection_id:
             raise ValueError(
-                "Either tables_schema_xml or "
-                "connection_id must be provided"
+                "Either tables_schema_xml or connection_id must be provided"
             )
         return self
 
@@ -41,6 +33,4 @@ class ChatbotResumeRequest(BaseModel):
     reason: str | None = None
     tables_schema_xml: str | None = None
     connection_id: str | None = None
-    chat_model_settings: ChatModelSettings = (
-        ChatModelSettings()
-    )
+    chat_model_settings: ChatModelSettings = ChatModelSettings()

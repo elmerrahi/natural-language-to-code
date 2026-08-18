@@ -12,9 +12,7 @@ from .base import (
 
 
 class DuckDBConnector(DatabaseConnector):
-    def __init__(
-        self, conn: duckdb.DuckDBPyConnection
-    ) -> None:
+    def __init__(self, conn: duckdb.DuckDBPyConnection) -> None:
         self.conn = conn
 
     async def test_connection(self) -> bool:
@@ -39,46 +37,26 @@ class DuckDBConnector(DatabaseConnector):
             cols: list[Any] = self.conn.execute(
                 f'PRAGMA table_info("{table_name}")'
             ).fetchall()
-            columns = [
-                ColumnInfo(name=c[1], data_type=c[2])
-                for c in cols
-            ]
-            tables.append(
-                TableInfo(
-                    name=table_name, columns=columns
-                )
-            )
+            columns = [ColumnInfo(name=c[1], data_type=c[2]) for c in cols]
+            tables.append(TableInfo(name=table_name, columns=columns))
         return tables
 
-    async def execute_query(
-        self, query: str, limit: int = 50
-    ) -> str:
+    async def execute_query(self, query: str, limit: int = 50) -> str:
         try:
             self.conn.execute(query)
             if self.conn.description is None:
                 return json.dumps(
                     {
-                        "message": (
-                            "Query executed successfully"
-                        ),
-                        "rows_affected": getattr(
-                            self.conn, "rowcount", None
-                        ),
+                        "message": ("Query executed successfully"),
+                        "rows_affected": getattr(self.conn, "rowcount", None),
                     }
                 )
-            columns = [
-                desc[0]
-                for desc in self.conn.description
-            ]
+            columns = [desc[0] for desc in self.conn.description]
             rows = self.conn.fetchmany(limit)
-            result = [
-                dict(zip(columns, r)) for r in rows
-            ]
+            result = [dict(zip(columns, r)) for r in rows]
             return json.dumps(
                 {
-                    "message": (
-                        "Query executed successfully"
-                    ),
+                    "message": ("Query executed successfully"),
                     "results": result,
                 },
                 default=str,

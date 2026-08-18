@@ -22,15 +22,15 @@ export default function SchemaViewer({ tables }: Props) {
   };
 
   return (
-    <div className="space-y-1">
-      <p className="text-xs text-muted font-medium uppercase tracking-wider mb-2">
-        Tables ({tables.length})
+    <div className="space-y-1.5">
+      <p className="mb-2 flex items-center justify-between font-mono text-[10px] font-medium uppercase tracking-wider text-muted">
+        <span>Schema map</span><span className="text-cyan-300">{tables.length} tables</span>
       </p>
       {tables.map((table) => (
-        <div key={table.name}>
+        <div key={table.name} className="overflow-hidden rounded-lg border border-white/[0.04] bg-black/10">
           <button
             onClick={() => toggle(table.name)}
-            className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm text-left hover:bg-background/50 transition-colors"
+            className="flex w-full items-center gap-2 px-2.5 py-2 text-left text-sm transition-colors hover:bg-cyan-300/[0.035]"
           >
             <svg
               className={`w-3 h-3 text-muted transition-transform ${
@@ -49,10 +49,10 @@ export default function SchemaViewer({ tables }: Props) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0112 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m17.25-3.75h-7.5c-.621 0-1.125.504-1.125 1.125m8.625-1.125c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 10.875v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M13.125 12h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125M20.625 12c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5M12 14.625v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 14.625c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m0 0v1.5c0 .621-.504 1.125-1.125 1.125" />
             </svg>
             <span className="font-mono text-xs truncate">{table.name}</span>
-            <span className="ml-auto text-xs text-muted">{table.columns.length}</span>
+            <span className="ml-auto rounded-md bg-violet-400/[0.08] px-1.5 py-0.5 font-mono text-[9px] text-violet-200">{table.columns.length}</span>
           </button>
           {expanded.has(table.name) && (
-            <div className="ml-7 mb-1 space-y-0.5">
+            <div className="mb-1 ml-7 space-y-0.5 border-l border-cyan-300/10 pl-1">
               {table.columns.map((col) => (
                 <div
                   key={col.name}

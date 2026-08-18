@@ -1,4 +1,5 @@
 import asyncio
+import sys
 
 from langgraph.checkpoint.postgres.aio import (
     AsyncPostgresSaver,
@@ -24,9 +25,7 @@ _TABLE_DDL_KEYS = [
 
 async def main():
     settings = get_settings()
-    query_store = QueryStore(
-        base_query_path=settings.paths.queries_dir
-    )
+    query_store = QueryStore(base_query_path=settings.paths.queries_dir)
 
     pool = create_db_connection_pool(settings=settings)
     await pool.open()
@@ -34,14 +33,8 @@ async def main():
     async with pool.connection() as conn:
         async with conn.transaction():
             schema_query = sql.SQL(
-                query_store.get_query(
-                    "ddl.create_schema"
-                )
-            ).format(
-                schema_name=sql.Identifier(
-                    settings.db.schema_name
-                )
-            )
+                query_store.get_query("ddl.create_schema")
+            ).format(schema_name=sql.Identifier(settings.db.schema_name))
             await conn.execute(schema_query)
     logger.success(
         "Schema [{name}] creation complete.",
@@ -51,22 +44,16 @@ async def main():
     async with pool.connection() as conn:
         await conn.set_autocommit(True)
         try:
-            checkpointer = AsyncPostgresSaver(
-                conn=conn
-            )  # type: ignore
+            checkpointer = AsyncPostgresSaver(conn=conn)  # type: ignore
             await checkpointer.setup()
-            logger.success(
-                "LangGraph schema setup complete."
-            )
+            logger.success("LangGraph schema setup complete.")
         finally:
             await conn.set_autocommit(False)
 
     async with pool.connection() as conn:
         async with conn.transaction():
             await conn.execute(
-                query=query_store.get_query(
-                    "ddl.create_checkpoint_index"
-                )
+                query=query_store.get_query("ddl.create_checkpoint_index")
             )
     logger.success("Checkpoint index complete")
 
@@ -82,8 +69,7 @@ async def main():
                     )
                 except KeyError:
                     logger.warning(
-                        "DDL {key} not found, "
-                        "skipping.",
+                        "DDL {key} not found, skipping.",
                         key=key,
                     )
     logger.success("Application tables initialized")
@@ -93,7 +79,7 @@ async def main():
 
 
 if __name__ == "__main__":
-    logger.info(
-        "Running database initialization..."
-    )
+    if sys.platform == "win32":
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    logger.info("Running database initialization...")
     asyncio.run(main())

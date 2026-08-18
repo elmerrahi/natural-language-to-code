@@ -18,16 +18,12 @@ async def _get_db_pool(
 @router.get("/connections/{connection_id}/history")
 async def get_query_history(
     connection_id: str,
-    api_key_id: Annotated[
-        str, Depends(get_api_key_id)
-    ],
+    api_key_id: Annotated[str, Depends(get_api_key_id)],
     db_pool: Annotated[
         psycopg_pool.AsyncConnectionPool,
         Depends(_get_db_pool),
     ],
-    limit: Annotated[
-        int, Query(ge=1, le=200)
-    ] = 50,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
 ) -> dict[str, Any]:
     async with db_pool.connection() as conn:
         cur = await conn.execute(
@@ -57,16 +53,11 @@ async def get_query_history(
     }
 
 
-@router.post(
-    "/connections/{connection_id}"
-    "/history/{query_id}/save"
-)
+@router.post("/connections/{connection_id}/history/{query_id}/save")
 async def save_query(
     connection_id: str,
     query_id: str,
-    api_key_id: Annotated[
-        str, Depends(get_api_key_id)
-    ],
+    api_key_id: Annotated[str, Depends(get_api_key_id)],
     db_pool: Annotated[
         psycopg_pool.AsyncConnectionPool,
         Depends(_get_db_pool),

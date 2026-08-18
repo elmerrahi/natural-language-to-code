@@ -30,9 +30,7 @@ async def get_api_key_id(
             detail="Missing X-API-Key header",
         )
 
-    key_hash = hashlib.sha256(
-        api_key.encode()
-    ).hexdigest()
+    key_hash = hashlib.sha256(api_key.encode()).hexdigest()
 
     cached = _key_cache.get(key_hash)
     if cached and time.time() - cached[1] < _CACHE_TTL:
@@ -41,9 +39,7 @@ async def get_api_key_id(
     db_pool = request.state.db_pool
     async with db_pool.connection() as conn:
         cur = await conn.execute(
-            "SELECT id FROM api_keys "
-            "WHERE key_hash = %s "
-            "AND is_active = true",
+            "SELECT id FROM api_keys WHERE key_hash = %s AND is_active = true",
             (key_hash,),
         )
         row = await cur.fetchone()
@@ -97,9 +93,7 @@ class ChatRouteDependencies:
         user_id: UUID4,
         thread_id: UUID4,
         request: ChatbotRequest,
-        graph: Annotated[
-            CompiledStateGraph, Depends(get_graph)
-        ],
+        graph: Annotated[CompiledStateGraph, Depends(get_graph)],
         connection_service: Annotated[
             ConnectionService,
             Depends(get_connection_service),
@@ -108,10 +102,7 @@ class ChatRouteDependencies:
         if user_id == thread_id:
             raise HTTPException(
                 status_code=400,
-                detail=(
-                    "`user_id` cannot be the same "
-                    "as `thread_id`"
-                ),
+                detail=("`user_id` cannot be the same as `thread_id`"),
             )
 
         self.user_id = user_id
@@ -127,17 +118,12 @@ class ResumeRouteDependencies:
         user_id: UUID4,
         thread_id: UUID4,
         request: ChatbotResumeRequest,
-        graph: Annotated[
-            CompiledStateGraph, Depends(get_graph)
-        ],
+        graph: Annotated[CompiledStateGraph, Depends(get_graph)],
     ):
         if user_id == thread_id:
             raise HTTPException(
                 status_code=400,
-                detail=(
-                    "`user_id` cannot be the same "
-                    "as `thread_id`"
-                ),
+                detail=("`user_id` cannot be the same as `thread_id`"),
             )
 
         self.user_id = user_id

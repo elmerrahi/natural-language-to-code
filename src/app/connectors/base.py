@@ -28,9 +28,7 @@ class DatabaseConnector(ABC):
         pass
 
     @abstractmethod
-    async def execute_query(
-        self, query: str, limit: int = 50
-    ) -> str:
+    async def execute_query(self, query: str, limit: int = 50) -> str:
         pass
 
     @abstractmethod
