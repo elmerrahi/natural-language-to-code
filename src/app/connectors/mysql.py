@@ -67,19 +67,13 @@ class MySQLConnector(DatabaseConnector):
         tables: dict[str, TableInfo] = {}
         for table_name, col_name, dtype in rows:
             if table_name not in tables:
-                tables[table_name] = TableInfo(
-                    name=table_name, columns=[]
-                )
+                tables[table_name] = TableInfo(name=table_name, columns=[])
             tables[table_name].columns.append(
-                ColumnInfo(
-                    name=col_name, data_type=dtype
-                )
+                ColumnInfo(name=col_name, data_type=dtype)
             )
         return list(tables.values())
 
-    async def execute_query(
-        self, query: str, limit: int = 50
-    ) -> str:
+    async def execute_query(self, query: str, limit: int = 50) -> str:
         conn = await self._get_conn()
         try:
             async with conn.cursor() as cur:
@@ -87,29 +81,16 @@ class MySQLConnector(DatabaseConnector):
                 if cur.description is None:
                     return json.dumps(
                         {
-                            "message": (
-                                "Query executed "
-                                "successfully"
-                            ),
-                            "rows_affected": (
-                                cur.rowcount
-                            ),
+                            "message": ("Query executed successfully"),
+                            "rows_affected": (cur.rowcount),
                         }
                     )
-                columns = [
-                    d[0] for d in cur.description
-                ]
+                columns = [d[0] for d in cur.description]
                 rows = await cur.fetchmany(limit)
-                result = [
-                    dict(zip(columns, row))
-                    for row in rows
-                ]
+                result = [dict(zip(columns, row)) for row in rows]
                 return json.dumps(
                     {
-                        "message": (
-                            "Query executed "
-                            "successfully"
-                        ),
+                        "message": ("Query executed successfully"),
                         "results": result,
                     },
                     default=str,

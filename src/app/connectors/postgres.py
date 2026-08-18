@@ -32,11 +32,7 @@ class PostgresConnector(DatabaseConnector):
         self,
     ) -> psycopg.AsyncConnection:
         if self._conn is None or self._conn.closed:
-            self._conn = (
-                await psycopg.AsyncConnection.connect(
-                    self.conninfo
-                )
-            )
+            self._conn = await psycopg.AsyncConnection.connect(self.conninfo)
         return self._conn
 
     async def test_connection(self) -> bool:
@@ -65,41 +61,29 @@ class PostgresConnector(DatabaseConnector):
         tables: dict[str, TableInfo] = {}
         for table_name, col_name, dtype in rows:
             if table_name not in tables:
-                tables[table_name] = TableInfo(
-                    name=table_name, columns=[]
-                )
+                tables[table_name] = TableInfo(name=table_name, columns=[])
             tables[table_name].columns.append(
                 ColumnInfo(name=col_name, data_type=dtype)
             )
         return list(tables.values())
 
-    async def execute_query(
-        self, query: str, limit: int = 50
-    ) -> str:
+    async def execute_query(self, query: str, limit: int = 50) -> str:
         conn = await self._get_conn()
         try:
             cur = await conn.execute(query)
             if cur.description is None:
                 return json.dumps(
                     {
-                        "message": (
-                            "Query executed successfully"
-                        ),
+                        "message": ("Query executed successfully"),
                         "rows_affected": cur.rowcount,
                     }
                 )
-            columns = [
-                desc[0] for desc in cur.description
-            ]
+            columns = [desc[0] for desc in cur.description]
             rows = await cur.fetchmany(limit)
-            result = [
-                dict(zip(columns, row)) for row in rows
-            ]
+            result = [dict(zip(columns, row)) for row in rows]
             return json.dumps(
                 {
-                    "message": (
-                        "Query executed successfully"
-                    ),
+                    "message": ("Query executed successfully"),
                     "results": result,
                 },
                 default=str,

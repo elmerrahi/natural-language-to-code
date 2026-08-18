@@ -83,4 +83,6 @@ class Tool(Node[ChatGraphState]):
             messages=output_messages,
             stop_reason=state.stop_reason,
             interrupt_policy=state.interrupt_policy,
+            connection_id=state.connection_id,
+            api_key_id=state.api_key_id,
         )

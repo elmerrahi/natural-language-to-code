@@ -25,9 +25,7 @@ async def get_catalog(
         Depends(_get_conn_service),
     ],
 ) -> dict[str, Any]:
-    cached = await conn_service.get_cached_schema(
-        connection_id
-    )
+    cached = await conn_service.get_cached_schema(connection_id, api_key_id)
     if not cached:
         raise HTTPException(
             status_code=404,
@@ -40,9 +38,7 @@ async def get_catalog(
     }
 
 
-@router.post(
-    "/connections/{connection_id}/catalog/refresh"
-)
+@router.post("/connections/{connection_id}/catalog/refresh")
 async def refresh_catalog(
     connection_id: str,
     api_key_id: Annotated[str, Depends(get_api_key_id)],
@@ -51,9 +47,7 @@ async def refresh_catalog(
         Depends(_get_conn_service),
     ],
 ) -> dict[str, Any]:
-    schema_xml = await conn_service.refresh_schema(
-        connection_id
-    )
+    schema_xml = await conn_service.refresh_schema(connection_id, api_key_id)
     return {
         "connection_id": connection_id,
         "schema_xml": schema_xml,

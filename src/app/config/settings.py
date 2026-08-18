@@ -13,13 +13,9 @@ from app.config.paths import PathsConfig
 
 class Settings(BaseSettings):
     db: PostgresDatabaseConfig = Field(default=...)
-    paths: PathsConfig = Field(
-        default_factory=PathsConfig
-    )
+    paths: PathsConfig = Field(default_factory=PathsConfig)
     fernet_key: str = ""
-    environment: Literal[
-        "development", "production"
-    ] = "development"
+    environment: Literal["development", "production"] = "development"
     cors_origins: str = "*"
 
     model_config = SettingsConfigDict(
@@ -38,8 +34,4 @@ class Settings(BaseSettings):
 
     @property
     def parsed_cors_origins(self) -> list[str]:
-        return [
-            o.strip()
-            for o in self.cors_origins.split(",")
-            if o.strip()
-        ]
+        return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

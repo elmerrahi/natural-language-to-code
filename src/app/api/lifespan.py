@@ -54,8 +54,7 @@ async def _initialize_tables(
                     await conn.execute(ddl)  # type: ignore
                 except KeyError:
                     logger.warning(
-                        "DDL query {key} not found, "
-                        "skipping.",
+                        "DDL query {key} not found, skipping.",
                         key=key,
                     )
     logger.info("Application tables initialized")
@@ -71,13 +70,11 @@ async def lifespan(
         raise RuntimeError(
             "FERNET_KEY must be set in production. "
             "Generate one with: python -c "
-            "\"from cryptography.fernet import Fernet; "
-            "print(Fernet.generate_key().decode())\""
+            '"from cryptography.fernet import Fernet; '
+            'print(Fernet.generate_key().decode())"'
         )
 
-    db_pool = create_db_connection_pool(
-        settings=settings
-    )
+    db_pool = create_db_connection_pool(settings=settings)
     await db_pool.open()
     logger.info("Database pool ready")
 
@@ -94,9 +91,7 @@ async def lifespan(
             "Encrypted data will not survive restarts."
         )
 
-    connection_service = ConnectionService(
-        db_pool=db_pool, cipher=cipher
-    )
+    connection_service = ConnectionService(db_pool=db_pool, cipher=cipher)
 
     tool_handler = get_tool_handler(
         dependencies={
@@ -104,18 +99,12 @@ async def lifespan(
             "connection_service": connection_service,
         }
     )
-    prompt_store = PromptStore(
-        prompts_dir=settings.paths.prompts_dir
-    )
-    query_store = QueryStore(
-        base_query_path=settings.paths.queries_dir
-    )
+    prompt_store = PromptStore(prompts_dir=settings.paths.prompts_dir)
+    query_store = QueryStore(base_query_path=settings.paths.queries_dir)
 
     await _initialize_tables(db_pool, query_store)
 
-    checkpointer = AsyncPostgresSaver(
-        conn=db_pool
-    )  # type: ignore
+    checkpointer = AsyncPostgresSaver(conn=db_pool)  # type: ignore
 
     graph = create_chat_graph(
         anthropic_client=anthropic_client,
