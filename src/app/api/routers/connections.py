@@ -79,7 +79,7 @@ async def create_connection(
 
     connection_id = str(row[0])
 
-    schema_xml = await conn_service.refresh_schema(connection_id)
+    schema_xml = await conn_service.refresh_schema(connection_id, api_key_id)
 
     return {
         "id": connection_id,
@@ -146,7 +146,7 @@ async def test_connection(
         Depends(_get_conn_service),
     ],
 ) -> dict[str, Any]:
-    ok = await conn_service.test_connection_by_id(connection_id)
+    ok = await conn_service.test_connection_by_id(connection_id, api_key_id)
     return {
         "connection_id": connection_id,
         "status": "ok" if ok else "failed",

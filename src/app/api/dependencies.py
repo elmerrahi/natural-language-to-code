@@ -93,6 +93,7 @@ class ChatRouteDependencies:
         user_id: UUID4,
         thread_id: UUID4,
         request: ChatbotRequest,
+        api_key_id: Annotated[str, Depends(get_api_key_id)],
         graph: Annotated[CompiledStateGraph, Depends(get_graph)],
         connection_service: Annotated[
             ConnectionService,
@@ -108,6 +109,7 @@ class ChatRouteDependencies:
         self.user_id = user_id
         self.thread_id = thread_id
         self.request = request
+        self.api_key_id = api_key_id
         self.graph = graph
         self.connection_service = connection_service
 
@@ -118,6 +120,7 @@ class ResumeRouteDependencies:
         user_id: UUID4,
         thread_id: UUID4,
         request: ChatbotResumeRequest,
+        api_key_id: Annotated[str, Depends(get_api_key_id)],
         graph: Annotated[CompiledStateGraph, Depends(get_graph)],
     ):
         if user_id == thread_id:
@@ -129,4 +132,5 @@ class ResumeRouteDependencies:
         self.user_id = user_id
         self.thread_id = thread_id
         self.request = request
+        self.api_key_id = api_key_id
         self.graph = graph

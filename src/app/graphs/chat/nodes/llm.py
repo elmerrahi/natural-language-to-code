@@ -193,6 +193,8 @@ class LLM(Node[ChatGraphState]):
             messages=[{"role": "assistant", "content": content}],
             stop_reason=str(stop_reason),
             interrupt_policy=state.interrupt_policy,
+            connection_id=state.connection_id,
+            api_key_id=state.api_key_id,
         )
 
     async def __call__(

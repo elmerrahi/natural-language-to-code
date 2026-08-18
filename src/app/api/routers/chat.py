@@ -1,7 +1,7 @@
 import json
 from typing import Annotated, Any, AsyncIterator
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import StreamingResponse
 from langgraph.graph.state import CompiledStateGraph
@@ -60,6 +60,22 @@ _SSE_HEADERS = {
 }
 
 
+async def _assert_thread_owner(
+    graph: CompiledStateGraph,
+    thread_id: str,
+    api_key_id: str,
+) -> None:
+    snapshot = await graph.aget_state(
+        {"configurable": {"thread_id": thread_id}}
+    )
+    values = getattr(snapshot, "values", None) or {}
+    if values and values.get("api_key_id") != api_key_id:
+        raise HTTPException(
+            status_code=404,
+            detail="Conversation not found",
+        )
+
+
 @router.post(
     "/stream/{user_id}/{thread_id}",
     status_code=200,
@@ -72,20 +88,28 @@ async def stream_chatbot_response(
 ) -> StreamingResponse:
     req = chat_dependencies.request
     conn_id = req.connection_id
+    api_key_id = chat_dependencies.api_key_id
+
+    await _assert_thread_owner(
+        chat_dependencies.graph,
+        str(chat_dependencies.thread_id),
+        api_key_id,
+    )
 
     tables_xml = req.tables_schema_xml
     if conn_id:
         svc = chat_dependencies.connection_service
-        cached = await svc.get_cached_schema(conn_id)
+        cached = await svc.get_cached_schema(conn_id, api_key_id)
         if cached:
             tables_xml = cached
         else:
-            tables_xml = await svc.refresh_schema(conn_id)
+            tables_xml = await svc.refresh_schema(conn_id, api_key_id)
 
     input = {
         "messages": [{"role": "user", "content": req.content}],
         "interrupt_policy": req.interrupt_policy,
         "connection_id": conn_id,
+        "api_key_id": api_key_id,
     }
     config = {
         "configurable": {
@@ -96,7 +120,10 @@ async def stream_chatbot_response(
             },
             "thread_id": str(chat_dependencies.thread_id),
         },
-        "metadata": {"user_id": str(chat_dependencies.user_id)},
+        "metadata": {
+            "user_id": str(chat_dependencies.user_id),
+            "api_key_id": api_key_id,
+        },
     }
 
     return StreamingResponse(
@@ -121,6 +148,12 @@ async def resume_chatbot_response(
     ],
 ) -> StreamingResponse:
     req = resume_dependencies.request
+    api_key_id = resume_dependencies.api_key_id
+    await _assert_thread_owner(
+        resume_dependencies.graph,
+        str(resume_dependencies.thread_id),
+        api_key_id,
+    )
     input: Any = Command(
         resume={
             "query": req.query,
@@ -132,7 +165,10 @@ async def resume_chatbot_response(
             "llm": (req.chat_model_settings.model_dump()),
             "thread_id": str(resume_dependencies.thread_id),
         },
-        "metadata": {"user_id": str(resume_dependencies.user_id)},
+        "metadata": {
+            "user_id": str(resume_dependencies.user_id),
+            "api_key_id": api_key_id,
+        },
     }
 
     return StreamingResponse(

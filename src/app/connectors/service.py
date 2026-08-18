@@ -58,14 +58,15 @@ class ConnectionService:
         return json.loads(decrypt_value(self.cipher, token))
 
     async def get_connection_config(
-        self, connection_id: str
+        self, connection_id: str, api_key_id: str
     ) -> tuple[str, dict]:
         async with self.db_pool.connection() as conn:
             cur = await conn.execute(
                 "SELECT connector_type, encrypted_config "
                 "FROM connections "
-                "WHERE id = %s AND is_active = true",
-                (connection_id,),
+                "WHERE id = %s AND api_key_id = %s "
+                "AND is_active = true",
+                (connection_id, api_key_id),
             )
             row = await cur.fetchone()
         if not row:
@@ -74,9 +75,11 @@ class ConnectionService:
         config: dict = self.decrypt_config(row[1])
         return connector_type, config
 
-    async def execute_query(self, connection_id: str, query: str) -> str:
+    async def execute_query(
+        self, connection_id: str, api_key_id: str, query: str
+    ) -> str:
         connector_type, config = await self.get_connection_config(
-            connection_id
+            connection_id, api_key_id
         )
         connector = _create_connector(connector_type, config)
         try:
@@ -84,9 +87,11 @@ class ConnectionService:
         finally:
             await connector.close()
 
-    async def introspect_schema(self, connection_id: str) -> str:
+    async def introspect_schema(
+        self, connection_id: str, api_key_id: str
+    ) -> str:
         connector_type, config = await self.get_connection_config(
-            connection_id
+            connection_id, api_key_id
         )
         connector = _create_connector(connector_type, config)
         try:
@@ -95,9 +100,11 @@ class ConnectionService:
         finally:
             await connector.close()
 
-    async def test_connection_by_id(self, connection_id: str) -> bool:
+    async def test_connection_by_id(
+        self, connection_id: str, api_key_id: str
+    ) -> bool:
         connector_type, config = await self.get_connection_config(
-            connection_id
+            connection_id, api_key_id
         )
         connector = _create_connector(connector_type, config)
         try:
@@ -122,19 +129,23 @@ class ConnectionService:
         finally:
             await connector.close()
 
-    async def get_cached_schema(self, connection_id: str) -> str | None:
+    async def get_cached_schema(
+        self, connection_id: str, api_key_id: str
+    ) -> str | None:
         async with self.db_pool.connection() as conn:
             cur = await conn.execute(
-                "SELECT schema_xml "
-                "FROM schema_catalog "
-                "WHERE connection_id = %s",
-                (connection_id,),
+                "SELECT sc.schema_xml "
+                "FROM schema_catalog sc "
+                "JOIN connections c ON c.id = sc.connection_id "
+                "WHERE sc.connection_id = %s "
+                "AND c.api_key_id = %s AND c.is_active = true",
+                (connection_id, api_key_id),
             )
             row = await cur.fetchone()
         return row[0] if row else None
 
-    async def refresh_schema(self, connection_id: str) -> str:
-        schema_xml = await self.introspect_schema(connection_id)
+    async def refresh_schema(self, connection_id: str, api_key_id: str) -> str:
+        schema_xml = await self.introspect_schema(connection_id, api_key_id)
         async with self.db_pool.connection() as conn:
             async with conn.transaction():
                 await conn.execute(

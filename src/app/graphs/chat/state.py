@@ -14,3 +14,4 @@ class ChatGraphState:
     stop_reason: str = field(default_factory=str)
     interrupt_policy: InterruptPolicy = "never"
     connection_id: str | None = None
+    api_key_id: str | None = None

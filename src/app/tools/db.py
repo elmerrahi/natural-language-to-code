@@ -107,6 +107,13 @@ class QueryExecutorTool(
                     )
 
         if state.connection_id and self.connection_service:
+            if not state.api_key_id:
+                return json.dumps(
+                    {
+                        "error": "REJECTED",
+                        "message": "Authenticated connection owner is missing.",
+                    }
+                )
             return await self._execute_via_connector(
                 input_data,
                 state,
@@ -130,6 +137,7 @@ class QueryExecutorTool(
             svc: ConnectionService = self.connection_service
             raw = await svc.execute_query(
                 state.connection_id,  # type: ignore
+                state.api_key_id,  # type: ignore
                 input_data.query,
             )
             result = json.loads(raw)
