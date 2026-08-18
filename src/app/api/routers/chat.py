@@ -15,13 +15,9 @@ from ..dependencies import (
 router = APIRouter(tags=["chat"])
 
 
-def format_sse_event(
-    event_type: str, data: dict[str, Any]
-) -> str:
+def format_sse_event(event_type: str, data: dict[str, Any]) -> str:
     return (
-        f"event: {event_type}\n"
-        f"data: {json.dumps(jsonable_encoder(data))}"
-        "\n\n"
+        f"event: {event_type}\ndata: {json.dumps(jsonable_encoder(data))}\n\n"
     )
 
 
@@ -36,10 +32,7 @@ async def _execute_stream(
             config=config,  # type: ignore
             stream_mode=["custom", "updates"],
         ):
-            if (
-                mode == "updates"
-                and "__interrupt__" not in event
-            ):
+            if mode == "updates" and "__interrupt__" not in event:
                 continue
 
             for event_type, event_data in event.items():  # type: ignore  # noqa: E501
@@ -57,9 +50,7 @@ async def _execute_stream(
             "status": "error",
             "error": str(e),
         }
-        yield format_sse_event(
-            event_type="error", data=error_payload
-        )
+        yield format_sse_event(event_type="error", data=error_payload)
 
 
 _SSE_HEADERS = {
@@ -89,14 +80,10 @@ async def stream_chatbot_response(
         if cached:
             tables_xml = cached
         else:
-            tables_xml = await svc.refresh_schema(
-                conn_id
-            )
+            tables_xml = await svc.refresh_schema(conn_id)
 
     input = {
-        "messages": [
-            {"role": "user", "content": req.content}
-        ],
+        "messages": [{"role": "user", "content": req.content}],
         "interrupt_policy": req.interrupt_policy,
         "connection_id": conn_id,
     }
@@ -107,13 +94,9 @@ async def stream_chatbot_response(
                 "tables": tables_xml,
                 "mode": req.mode,
             },
-            "thread_id": str(
-                chat_dependencies.thread_id
-            ),
+            "thread_id": str(chat_dependencies.thread_id),
         },
-        "metadata": {
-            "user_id": str(chat_dependencies.user_id)
-        },
+        "metadata": {"user_id": str(chat_dependencies.user_id)},
     }
 
     return StreamingResponse(
@@ -146,18 +129,10 @@ async def resume_chatbot_response(
     )
     config = {
         "configurable": {
-            "llm": (
-                req.chat_model_settings.model_dump()
-            ),
-            "thread_id": str(
-                resume_dependencies.thread_id
-            ),
+            "llm": (req.chat_model_settings.model_dump()),
+            "thread_id": str(resume_dependencies.thread_id),
         },
-        "metadata": {
-            "user_id": str(
-                resume_dependencies.user_id
-            )
-        },
+        "metadata": {"user_id": str(resume_dependencies.user_id)},
     }
 
     return StreamingResponse(

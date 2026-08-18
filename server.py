@@ -2,9 +2,7 @@ import asyncio
 import sys
 
 if sys.platform == "win32":
-    asyncio.set_event_loop_policy(
-        asyncio.WindowsSelectorEventLoopPolicy()
-    )
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -46,14 +44,10 @@ app.add_middleware(
 )
 
 api_router = APIRouter(prefix="/v1/api")
-api_router.include_router(
-    router=health_router, prefix="/health"
-)
+api_router.include_router(router=health_router, prefix="/health")
 api_router.include_router(router=keys_router)
 api_router.include_router(router=chat_router)
-api_router.include_router(
-    router=data_router, prefix="/data"
-)
+api_router.include_router(router=data_router, prefix="/data")
 api_router.include_router(router=connections_router)
 api_router.include_router(router=catalog_router)
 api_router.include_router(router=history_router)

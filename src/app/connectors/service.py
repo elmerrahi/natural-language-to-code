@@ -16,24 +16,18 @@ from .mysql import MySQLConnector
 from .postgres import PostgresConnector
 
 
-def _create_connector(
-    connector_type: str, config: dict
-) -> DatabaseConnector:
+def _create_connector(connector_type: str, config: dict) -> DatabaseConnector:
     if connector_type == "postgres":
         return PostgresConnector(**config)
     elif connector_type == "mysql":
         return MySQLConnector(**config)
-    raise ValueError(
-        f"Unsupported connector type: {connector_type}"
-    )
+    raise ValueError(f"Unsupported connector type: {connector_type}")
 
 
 def tables_to_xml(tables: list[TableInfo]) -> str:
     root = ET.Element("tables_schema")
     for table in tables:
-        tbl_el = ET.SubElement(
-            root, "table", {"name": table.name}
-        )
+        tbl_el = ET.SubElement(root, "table", {"name": table.name})
         for col in table.columns:
             ET.SubElement(
                 tbl_el,
@@ -58,14 +52,10 @@ class ConnectionService:
         self.cipher = cipher
 
     def encrypt_config(self, config: dict) -> str:
-        return encrypt_value(
-            self.cipher, json.dumps(config)
-        )
+        return encrypt_value(self.cipher, json.dumps(config))
 
     def decrypt_config(self, token: str) -> dict:
-        return json.loads(
-            decrypt_value(self.cipher, token)
-        )
+        return json.loads(decrypt_value(self.cipher, token))
 
     async def get_connection_config(
         self, connection_id: str
@@ -79,51 +69,37 @@ class ConnectionService:
             )
             row = await cur.fetchone()
         if not row:
-            raise ConnectorError(
-                f"Connection {connection_id} not found"
-            )
+            raise ConnectorError(f"Connection {connection_id} not found")
         connector_type: str = row[0]
         config: dict = self.decrypt_config(row[1])
         return connector_type, config
 
-    async def execute_query(
-        self, connection_id: str, query: str
-    ) -> str:
-        connector_type, config = (
-            await self.get_connection_config(connection_id)
+    async def execute_query(self, connection_id: str, query: str) -> str:
+        connector_type, config = await self.get_connection_config(
+            connection_id
         )
-        connector = _create_connector(
-            connector_type, config
-        )
+        connector = _create_connector(connector_type, config)
         try:
             return await connector.execute_query(query)
         finally:
             await connector.close()
 
-    async def introspect_schema(
-        self, connection_id: str
-    ) -> str:
-        connector_type, config = (
-            await self.get_connection_config(connection_id)
+    async def introspect_schema(self, connection_id: str) -> str:
+        connector_type, config = await self.get_connection_config(
+            connection_id
         )
-        connector = _create_connector(
-            connector_type, config
-        )
+        connector = _create_connector(connector_type, config)
         try:
             tables = await connector.introspect_schema()
             return tables_to_xml(tables)
         finally:
             await connector.close()
 
-    async def test_connection_by_id(
-        self, connection_id: str
-    ) -> bool:
-        connector_type, config = (
-            await self.get_connection_config(connection_id)
+    async def test_connection_by_id(self, connection_id: str) -> bool:
+        connector_type, config = await self.get_connection_config(
+            connection_id
         )
-        connector = _create_connector(
-            connector_type, config
-        )
+        connector = _create_connector(connector_type, config)
         try:
             return await connector.test_connection()
         finally:
@@ -134,24 +110,19 @@ class ConnectionService:
         connector_type: str,
         config: dict,
     ) -> bool:
-        connector = _create_connector(
-            connector_type, config
-        )
+        connector = _create_connector(connector_type, config)
         try:
             return await connector.test_connection()
         except Exception:
             logger.opt(exception=True).warning(
-                "Connection test failed for "
-                "{connector_type}.",
+                "Connection test failed for {connector_type}.",
                 connector_type=connector_type,
             )
             return False
         finally:
             await connector.close()
 
-    async def get_cached_schema(
-        self, connection_id: str
-    ) -> str | None:
+    async def get_cached_schema(self, connection_id: str) -> str | None:
         async with self.db_pool.connection() as conn:
             cur = await conn.execute(
                 "SELECT schema_xml "
@@ -162,12 +133,8 @@ class ConnectionService:
             row = await cur.fetchone()
         return row[0] if row else None
 
-    async def refresh_schema(
-        self, connection_id: str
-    ) -> str:
-        schema_xml = await self.introspect_schema(
-            connection_id
-        )
+    async def refresh_schema(self, connection_id: str) -> str:
+        schema_xml = await self.introspect_schema(connection_id)
         async with self.db_pool.connection() as conn:
             async with conn.transaction():
                 await conn.execute(

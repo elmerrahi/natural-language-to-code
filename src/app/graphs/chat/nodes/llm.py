@@ -58,12 +58,8 @@ class LLM(Node[ChatGraphState]):
         self.tool_schemas = list(tool_schemas.values())
         self.tool_schemas[-1]["cache_control"] = {"type": "ephemeral"}
 
-    def _validate_config(
-        self, config: RunnableConfig
-    ) -> dict[str, Any]:
-        node_config = config.get(
-            "configurable", {}
-        ).get(self.name)
+    def _validate_config(self, config: RunnableConfig) -> dict[str, Any]:
+        node_config = config.get("configurable", {}).get(self.name)
         if not node_config:
             raise KeyError(
                 f"Configuration for node "
@@ -101,17 +97,13 @@ class LLM(Node[ChatGraphState]):
 
         mode = node_config.get("mode", "generate")
         tables = node_config.get("tables", "")
-        rendered_prompt = (
-            self.prompt_store.get_prompt(
-                "system.jinja2"
-            ).render(tables=tables, mode=mode)
+        rendered_prompt = self.prompt_store.get_prompt("system.jinja2").render(
+            tables=tables, mode=mode
         )
 
         async with self.anthropic_client.messages.stream(
             model=model_name,
-            max_tokens=node_config.get(
-                "max_tokens", 16_384
-            ),
+            max_tokens=node_config.get("max_tokens", 16_384),
             messages=state.messages,  # type: ignore
             tools=self.tool_schemas,  # type: ignore
             system=[
@@ -126,9 +118,7 @@ class LLM(Node[ChatGraphState]):
                 {
                     "type": "text",
                     "text": rendered_prompt,
-                    "cache_control": {
-                        "type": "ephemeral"
-                    },
+                    "cache_control": {"type": "ephemeral"},
                 },
             ],
         ) as stream:
@@ -169,25 +159,15 @@ class LLM(Node[ChatGraphState]):
                         current_block["input"] = ""
                     elif block.type == "text":
                         current_block["text"] = ""
-                    writer(
-                        {
-                            "block-start": _get_block_display_type(
-                                block
-                            )
-                        }
-                    )
+                    writer({"block-start": _get_block_display_type(block)})
 
                 elif event.type == "content_block_delta":
                     if event.delta.type == "text_delta":
                         current_block["text"] += event.delta.text
                         writer({"text": event.delta.text})
                     elif event.delta.type == "input_json_delta":
-                        current_block["input"] += (
-                            event.delta.partial_json
-                        )
-                        writer(
-                            {"tool-input": event.delta.partial_json}
-                        )
+                        current_block["input"] += event.delta.partial_json
+                        writer({"tool-input": event.delta.partial_json})
 
                 elif event.type == "content_block_stop":
                     if current_block.get("type") == "tool_use":
@@ -204,9 +184,10 @@ class LLM(Node[ChatGraphState]):
                     current_block = {}
 
                 elif event.type == "message_delta":
-                    stop_reason = getattr(
-                        event.delta, "stop_reason", None
-                    ) or stop_reason
+                    stop_reason = (
+                        getattr(event.delta, "stop_reason", None)
+                        or stop_reason
+                    )
 
         return ChatGraphState(
             messages=[{"role": "assistant", "content": content}],
